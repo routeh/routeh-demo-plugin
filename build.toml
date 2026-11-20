@@ -1,0 +1,13 @@
+# What `cargo xtask build` builds (routeh-plugin-build).
+targets = ["armsr/armv8"]
+
+[service]
+package = "demo"
+
+# The device kind of its tunnel, from the files of kmod/demo/src.
+[[module]]
+name = "demo"
+dir = "kmod/demo"
+
+[qemu]
+# The bundle is installed and started in OpenWrt; no tests of its own yet.

@@ -1,0 +1,250 @@
+# The demo plugin's manifest: everything a plugin can declare, once, so
+# that the router's handling of each is seen and tested on one plugin
+# (README.md says what each part is for). crates/demo/src/lib.rs reads
+# and reports it.
+
+id = "demo"
+name = "Demo"
+version = "0.1.0"
+api = 1
+
+# Its own module (kmod/demo): a device kind `demo`, the tunnel's. It is
+# loaded at install and at boot, before the network, and held back by
+# safe mode.
+[modules]
+load = ["demo"]
+
+[service]
+command = "bin/demo"
+# rtnetlink for the tunnels' devices; marks on their outer sockets.
+capabilities = ["CAP_NET_ADMIN"]
+settle_within = "30s"
+
+[page]
+title = "Demo"
+icon = "extension"
+
+# What the service does: the settings that change how it behaves.
+[settings]
+greeting = { type = "text", max_len = 64, label = "Greeting" }
+log_level = { type = "choice", values = ["info", "debug"], label = "Log level" }
+heartbeat = { type = "duration", min = "1s", max = "1h", label = "Heartbeat" }
+settle_after = { type = "duration", max = "5m", label = "Settle after" }
+
+# Every type of field, kept by the document and reported back by count:
+# nothing else is done with them.
+text = { type = "text", pattern = "[a-z]+", max_len = 32, label = "Text (lowercase letters)" }
+secret = { type = "text", secret = true, label = "Secret" }
+template = { type = "template", max_len = 1024, label = "Template" }
+key = { type = "bytes", len = 32, secret = true, label = "Key (32 bytes, base64)" }
+enabled = { type = "bool", label = "Enabled" }
+small = { type = "u8", min = 1, max = 10, label = "Small number (1 to 10)" }
+medium = { type = "u16", label = "Medium number" }
+large = { type = "u32", min = 1000, label = "Large number (1000 or more)" }
+ports = { type = "range", of = "u16", min = 1024, label = "Port range" }
+interval = { type = "duration", min = "5s", max = "24h", label = "Interval" }
+port = { type = "port", label = "Port" }
+server = { type = "host_port", label = "Server" }
+subnet4 = { type = "ipv4_prefix", label = "IPv4 prefix" }
+subnet6 = { type = "ipv6_prefix", label = "IPv6 prefix" }
+address = { type = "address", label = "Address" }
+color = { type = "choice", values = ["red", "green", "blue"], label = "Color" }
+uplink = { type = "uplink", label = "Uplink" }
+network = { type = "network", label = "Network" }
+tunnel = { type = "tunnel", label = "Tunnel" }
+client = { type = "client", label = "Client" }
+names = { type = "list", max_items = 8, item = { type = "text", max_len = 32 }, label = "Names" }
+addresses = { type = "list", item = { type = "address" }, label = "Addresses" }
+uplinks = { type = "list", item = { type = "uplink" }, label = "Uplinks" }
+
+# A group: rows keyed by their host, status values and buttons in each.
+[settings.records]
+type = "group"
+label = "Records"
+key = "host"
+max_rows = 16
+columns = ["host", "target", "via", "owner", "port", "enabled"]
+
+[settings.records.fields]
+host = { type = "text", required = true, pattern = "[a-z0-9-]+", max_len = 63, label = "Host" }
+target = { type = "uplink", label = "Uplink" }
+via = { type = "tunnel", label = "Tunnel" }
+owner = { type = "client", label = "Client" }
+port = { type = "port", label = "Port" }
+enabled = { type = "bool", label = "Enabled" }
+
+[[form]]
+title = "Behaviour"
+fields = ["greeting", "log_level", "heartbeat", "settle_after"]
+
+[[form]]
+title = "Records"
+fields = ["records"]
+
+[[form]]
+title = "Text and numbers"
+fields = ["text", "secret", "template", "key", "enabled", "small", "medium", "large", "ports", "interval"]
+
+[[form]]
+title = "Addresses"
+fields = ["port", "server", "subnet4", "subnet6", "address", "addresses"]
+
+[[form]]
+title = "Choices and references"
+folded = true
+fields = ["color", "uplink", "network", "tunnel", "client", "names", "uplinks"]
+
+# The plugin's values: one of each type.
+[[status]]
+key = "greeting"
+label = "Greeting"
+type = "text"
+
+[[status]]
+key = "converged"
+label = "Converged"
+type = "count"
+
+[[status]]
+key = "heartbeats"
+label = "Heartbeats"
+type = "count"
+
+[[status]]
+key = "heartbeat"
+label = "Heartbeat every"
+type = "duration"
+
+[[status]]
+key = "started"
+label = "Started"
+type = "time"
+
+[[status]]
+key = "fields_set"
+label = "Fields set"
+type = "count"
+
+[[status]]
+key = "address"
+label = "Address"
+type = "address"
+
+[[status]]
+key = "sent_bytes"
+label = "Sent by tunnels"
+type = "bytes"
+
+# A record's values.
+[[status]]
+of = "records"
+key = "pings"
+label = "Pings"
+type = "count"
+
+[[status]]
+of = "records"
+key = "last_ping"
+label = "Last ping"
+type = "time"
+
+[[status]]
+of = "records"
+key = "target"
+label = "Uplink key"
+type = "text"
+
+# Buttons of the page, and of each record.
+[[actions]]
+key = "hello"
+label = "Say hello"
+
+[[actions]]
+key = "log_burst"
+label = "Log 100 lines"
+
+[[actions]]
+key = "slow"
+label = "Take 5 seconds"
+
+[[actions]]
+key = "fail"
+label = "Fail"
+
+[[actions]]
+key = "ping"
+label = "Ping"
+of = "records"
+
+[[actions]]
+key = "break"
+label = "Break or mend"
+of = "records"
+
+# The simplest tunnel: a `demo` device (kmod/demo) that drops what is
+# routed into it, with one IPv4 address and an optional IPv6 one. With an
+# endpoint the service pings it over UDP every keepalive, from a socket
+# with the tunnel's mark, and counts the answers; with a listen port it
+# answers such pings itself. Two routers' demo tunnels answer each other.
+[tunnel]
+link_kind = "demo"
+mtu = { default = 1420, min = 576, max = 9000 }
+
+[[tunnel.form]]
+title = "Interface"
+fields = ["address", "address6"]
+
+[[tunnel.form]]
+title = "Peer"
+fields = ["endpoint", "keepalive", "listen_port"]
+
+[[tunnel.form]]
+title = "Testing"
+folded = true
+fields = ["simulate"]
+
+[tunnel.settings]
+address = { type = "ipv4_prefix", role = "address", required = true, label = "Address" }
+address6 = { type = "ipv6_prefix", role = "address", label = "IPv6 address" }
+endpoint = { type = "host_port", role = "endpoint", label = "Endpoint" }
+keepalive = { type = "duration", min = "1s", max = "1h", label = "Keepalive" }
+listen_port = { type = "port", role = "listen", protocol = "udp", label = "Listen port" }
+simulate = { type = "choice", values = ["starting", "connecting", "down", "error"], label = "Simulate a phase" }
+
+[tunnel.constraints]
+requires = { keepalive = "endpoint" }
+
+[[tunnel.status]]
+key = "sent"
+label = "Pings sent"
+type = "count"
+
+[[tunnel.status]]
+key = "answered"
+label = "Answers"
+type = "count"
+
+[[tunnel.status]]
+key = "heard"
+label = "Pings heard"
+type = "count"
+
+[[tunnel.status]]
+key = "sent_bytes"
+label = "Sent"
+type = "bytes"
+
+[[tunnel.status]]
+key = "last_answer"
+label = "Last answer"
+type = "time"
+
+[[tunnel.status]]
+key = "keepalive"
+label = "Keepalive"
+type = "duration"
+
+[[tunnel.status]]
+key = "endpoint_address"
+label = "Endpoint address"
+type = "address"

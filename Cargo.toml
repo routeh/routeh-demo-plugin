@@ -1,0 +1,22 @@
+[workspace]
+resolver = "3"
+members = ["crates/*", "xtask"]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.88"
+license = "MIT OR Apache-2.0"
+
+# The plugin's SDK and build, pinned by Cargo.lock: `cargo update -p
+# routeh-plugin-sdk -p routeh-plugin-build` takes newer ones.
+[workspace.dependencies]
+routeh-plugin-sdk = { git = "https://github.com/routeh/routeh-plugin" }
+routeh-plugin-build = { git = "https://github.com/routeh/routeh-plugin" }
+
+# A plugin's service is small and static on the router.
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
