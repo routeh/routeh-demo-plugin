@@ -147,7 +147,7 @@ dependencies = [
 [[package]]
 name = "routeh-plugin-build"
 version = "0.1.0"
-source = "git+https://github.com/routeh/routeh-plugin#72f8e571dc491daacb8231218ca428f12546ce6c"
+source = "git+https://github.com/routeh/routeh-plugin#7808a7d5c810265d33c0d158d199d6de07c409bb"
 dependencies = [
  "routeh-plugin-bundle",
  "routeh-plugin-protocol",
@@ -159,7 +159,7 @@ dependencies = [
 [[package]]
 name = "routeh-plugin-bundle"
 version = "0.1.0"
-source = "git+https://github.com/routeh/routeh-plugin#72f8e571dc491daacb8231218ca428f12546ce6c"
+source = "git+https://github.com/routeh/routeh-plugin#7808a7d5c810265d33c0d158d199d6de07c409bb"
 dependencies = [
  "ring",
  "routeh-plugin-protocol",
@@ -172,7 +172,7 @@ dependencies = [
 [[package]]
 name = "routeh-plugin-protocol"
 version = "0.1.0"
-source = "git+https://github.com/routeh/routeh-plugin#72f8e571dc491daacb8231218ca428f12546ce6c"
+source = "git+https://github.com/routeh/routeh-plugin#7808a7d5c810265d33c0d158d199d6de07c409bb"
 dependencies = [
  "regex",
  "serde",
@@ -184,7 +184,7 @@ dependencies = [
 [[package]]
 name = "routeh-plugin-sdk"
 version = "0.1.0"
-source = "git+https://github.com/routeh/routeh-plugin#72f8e571dc491daacb8231218ca428f12546ce6c"
+source = "git+https://github.com/routeh/routeh-plugin#7808a7d5c810265d33c0d158d199d6de07c409bb"
 dependencies = [
  "libc",
  "routeh-plugin-protocol",

@@ -83,7 +83,9 @@ fn slow_takes_five_seconds_and_fail_fails() {
 fn ping_counts_and_dates_a_record_and_break_puts_it_in_error_until_pressed_again() {
     let mut bench = Bench::new();
     let desired = channel::desired(
-        &settings("records = [{ host = \"home\" }, { host = \"lab\" }]"),
+        &settings(
+            "records = [{ host = \"home\", enabled = true }, { host = \"lab\", enabled = true }]",
+        ),
         &[],
     );
     bench.converge(&desired);
@@ -129,7 +131,7 @@ fn ping_counts_and_dates_a_record_and_break_puts_it_in_error_until_pressed_again
     // A record that is deleted takes its count and its break along.
     press(&mut bench, &desired, "break", Some("home")).unwrap();
     bench.converge(&channel::desired(
-        &settings("records = [{ host = \"lab\" }]"),
+        &settings("records = [{ host = \"lab\", enabled = true }]"),
         &[],
     ));
     let state = bench.converge(&desired);

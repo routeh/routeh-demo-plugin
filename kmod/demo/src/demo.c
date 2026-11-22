@@ -19,15 +19,19 @@ static netdev_tx_t demo_xmit(struct sk_buff *skb, struct net_device *dev)
 	return NETDEV_TX_OK;
 }
 
+/*
+ * netdev_info() would print the device as "(uninitialized)" here: it is
+ * not registered yet, though its name is already given.
+ */
 static int demo_dev_init(struct net_device *dev)
 {
-	netdev_info(dev, "made\n");
+	pr_info(DRV_NAME ": %s made\n", dev->name);
 	return 0;
 }
 
 static void demo_dev_uninit(struct net_device *dev)
 {
-	netdev_info(dev, "removed\n");
+	pr_info(DRV_NAME ": %s removed\n", dev->name);
 }
 
 static void demo_get_stats64(struct net_device *dev,

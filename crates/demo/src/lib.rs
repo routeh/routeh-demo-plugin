@@ -218,7 +218,7 @@ impl<L: Links, O: Outer, C: Clock> Demo<L, O, C> {
     fn row(&self, record: &Record) -> RowState {
         let (phase, message) = if self.broken.contains(&record.host) {
             (Phase::Error, "broken by its button")
-        } else if record.enabled == Some(false) {
+        } else if record.enabled != Some(true) {
             (Phase::Down, "switched off")
         } else {
             (Phase::Up, "")
@@ -228,10 +228,12 @@ impl<L: Links, O: Outer, C: Clock> Demo<L, O, C> {
         if pings > 0 {
             row = row.value("last_ping", last);
         }
-        if let Some(target) = &record.target {
-            row = row.value("target", target.clone());
-        }
-        row
+        let summary = match (&record.target, record.rest.get("port")) {
+            (None, _) => "no uplink".to_owned(),
+            (Some(target), Some(port)) => format!("through {target}, port {port}"),
+            (Some(target), None) => format!("through {target}"),
+        };
+        row.value("summary", summary)
     }
 }
 
@@ -291,9 +293,13 @@ impl<L: Links, O: Outer, C: Clock> Plugin for Demo<L, O, C> {
                 .map(|made| (made.phase, made.message.clone()));
             if before.as_ref() != Some(&(phase, message.clone())) {
                 let log = log.instance(key);
+                let is = match phase {
+                    Phase::Error => "in error",
+                    other => other.word(),
+                };
                 let line = match message.as_str() {
-                    "" => format!("{} is {}", wanted.device, phase.word()),
-                    why => format!("{} is {}: {why}", wanted.device, phase.word()),
+                    "" => format!("{} is {is}", wanted.device),
+                    why => format!("{} is {is}: {why}", wanted.device),
                 };
                 if phase == Phase::Error {
                     log.error(line);
@@ -318,7 +324,7 @@ impl<L: Links, O: Outer, C: Clock> Plugin for Demo<L, O, C> {
         let starting = self.made.values().any(|made| made.phase == Phase::Starting);
         let mut state = State::settled()
             .value("greeting", settings.greeting())
-            .value("converged", self.received)
+            .value("received", self.received)
             .value("heartbeats", self.heartbeats)
             .value("started", self.started)
             .value("fields_set", settings.rest.len() as u64);

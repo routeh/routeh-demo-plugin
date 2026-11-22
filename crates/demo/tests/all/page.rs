@@ -15,7 +15,7 @@ fn every_field_is_taken_counted_and_one_of_each_value_is_reported() {
         value(&state.values, "greeting"),
         Some(&Reading::Text("Hi".into()))
     );
-    assert_eq!(value(&state.values, "converged"), Some(&Reading::Count(1)));
+    assert_eq!(value(&state.values, "received"), Some(&Reading::Count(1)));
     assert_eq!(value(&state.values, "heartbeats"), Some(&Reading::Count(0)));
     assert_eq!(
         value(&state.values, "heartbeat"),
@@ -40,8 +40,8 @@ fn every_field_is_taken_counted_and_one_of_each_value_is_reported() {
     assert_eq!(value(&home.values, "pings"), Some(&Reading::Count(0)));
     assert_eq!(value(&home.values, "last_ping"), None);
     assert_eq!(
-        value(&home.values, "target"),
-        Some(&Reading::Text("wan".into()))
+        value(&home.values, "summary"),
+        Some(&Reading::Text("through wan, port 22".into()))
     );
 }
 
@@ -62,19 +62,30 @@ fn with_nothing_set_it_greets_with_hello_and_reports_no_optional_value() {
 }
 
 #[test]
-fn a_record_switched_off_is_down() {
+fn a_record_is_on_only_when_enabled_is_true() {
+    // The router writes no key for a box that is not ticked: absent is
+    // off, as every optional key of a document.
     let mut bench = Bench::new();
     let desired = channel::desired(
-        &settings("records = [{ host = \"nas\", enabled = false }, { host = \"tv\" }]"),
+        &settings(
+            "records = [{ host = \"nas\", enabled = false }, { host = \"tv\" }, { host = \"pc\", enabled = true }]",
+        ),
         &[],
     );
     let state = bench.converge(&desired);
     let rows = &state.rows["records"];
+    for host in ["nas", "tv"] {
+        assert_eq!(
+            (rows[host].phase, rows[host].message.as_str()),
+            (Phase::Down, "switched off"),
+            "{host}"
+        );
+    }
+    assert_eq!(rows["pc"].phase, Phase::Up);
     assert_eq!(
-        (rows["nas"].phase, rows["nas"].message.as_str()),
-        (Phase::Down, "switched off")
+        value(&rows["pc"].values, "summary"),
+        Some(&Reading::Text("no uplink".into()))
     );
-    assert_eq!(rows["tv"].phase, Phase::Up);
 }
 
 #[test]
@@ -93,7 +104,7 @@ fn each_desired_is_logged_once_and_with_debug_every_converge() {
     let chatty = channel::desired(&settings("log_level = \"debug\""), &[]);
     bench.converge(&chatty);
     let state = bench.converge(&chatty);
-    assert_eq!(value(&state.values, "converged"), Some(&Reading::Count(2)));
+    assert_eq!(value(&state.values, "received"), Some(&Reading::Count(2)));
     assert_eq!(
         bench.lines().last().unwrap(),
         &format!("demo: converging again to {}", chatty.digest)

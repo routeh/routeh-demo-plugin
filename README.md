@@ -43,7 +43,8 @@ back. The settings that change what it does:
 | `settle_after` | `settled` only this long after a new `desired`: an apply waits for it, and fails past `settle_within` (30 s) |
 
 `records` is a group keyed by `host`: each row has its pings, the last
-ping's time and its uplink's key, is `down` when switched off and in
+ping's time and a summary of its uplink and port, is `down` unless
+`enabled` is ticked (an absent key is off) and in
 `error` after Break or mend (pressed again, it is up). The page's
 buttons: Say hello (a notice), Log 100 lines (twenty of each level),
 Take 5 seconds, Fail (always fails). A value of every type is shown:

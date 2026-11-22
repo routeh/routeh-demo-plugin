@@ -5,7 +5,7 @@
 
 id = "demo"
 name = "Demo"
-version = "0.1.0"
+version = "0.1.1"
 api = 1
 
 # Its own module (kmod/demo): a device kind `demo`, the tunnel's. It is
@@ -58,6 +58,7 @@ addresses = { type = "list", item = { type = "address" }, label = "Addresses" }
 uplinks = { type = "list", item = { type = "uplink" }, label = "Uplinks" }
 
 # A group: rows keyed by their host, status values and buttons in each.
+# A record is on only while `enabled` is ticked: an absent key is off.
 [settings.records]
 type = "group"
 label = "Records"
@@ -101,8 +102,8 @@ label = "Greeting"
 type = "text"
 
 [[status]]
-key = "converged"
-label = "Converged"
+key = "received"
+label = "Desired received"
 type = "count"
 
 [[status]]
@@ -150,8 +151,8 @@ type = "time"
 
 [[status]]
 of = "records"
-key = "target"
-label = "Uplink key"
+key = "summary"
+label = "Summary"
 type = "text"
 
 # Buttons of the page, and of each record.

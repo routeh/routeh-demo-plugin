@@ -150,6 +150,9 @@ fn a_device_or_a_port_that_cannot_be_had_is_an_error_with_why() {
             "port 1 could not be opened: Permission denied"
         )
     );
+    assert!(bench.lines().contains(
+        &"demo/a: tn_a is in error: tn_a could not be made: Operation not supported".to_owned()
+    ));
     let errors: Vec<_> = bench
         .log
         .entries()
